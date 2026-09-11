@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { History, Search, Filter, ArrowRight, X, Sparkles } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { History, Search, Filter, ArrowRight, X, Sparkles, Stethoscope } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { plantAPI, getImageUrl } from '../services/api';
 import DiagnosisResult from '../components/DiagnosisResult';
 
 const PlantHistory = () => {
+  const navigate = useNavigate();
   const { t } = useAuth();
   const [scans, setScans] = useState([]);
   const [search, setSearch] = useState('');
@@ -124,14 +126,29 @@ const PlantHistory = () => {
       {selectedScanDetail && (
         <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
           <div className="farm-card bg-white max-w-4xl w-full p-4 sm:p-6 my-4 sm:my-8 rounded-2xl sm:rounded-3xl max-h-[92vh] overflow-y-auto relative">
-            <button
-              onClick={() => setSelectedScanDetail(null)}
-              className="sticky sm:absolute top-2 right-2 sm:top-4 sm:right-4 ml-auto p-2 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors z-20 min-h-[36px] min-w-[36px] flex items-center justify-center"
-              aria-label="Close details"
-            >
-              <X className="w-5 h-5" />
-            </button>
-            <div className="pt-2 sm:pt-0">
+            <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-100">
+              <button
+                type="button"
+                onClick={() => {
+                  const detail = selectedScanDetail;
+                  setSelectedScanDetail(null);
+                  navigate('/plant-doctor', { state: { report: detail } });
+                }}
+                className="px-3.5 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold flex items-center gap-2 transition-colors cursor-pointer border border-emerald-200"
+              >
+                <Stethoscope className="w-4 h-4 text-emerald-600" />
+                <span>Open in Plant Doctor Tab</span>
+              </button>
+
+              <button
+                onClick={() => setSelectedScanDetail(null)}
+                className="p-2 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors z-20 min-h-[36px] min-w-[36px] flex items-center justify-center"
+                aria-label="Close details"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div>
               <DiagnosisResult report={selectedScanDetail} />
             </div>
           </div>

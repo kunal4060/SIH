@@ -101,11 +101,12 @@ export const plantAPI = {
     }
     return api.post('/plant/analyze', formData, {
       headers: { 'Content-Type': undefined },
-      timeout: 45000,
+      timeout: 90000,
     });
   },
   getHistory: (search) => api.get('/plant/history', { params: { search } }),
   getScanDetail: (id) => api.get(`/plant/history/${id}`),
+  getLatestScan: () => api.get('/plant/latest'),
 };
 
 export const chatAPI = {

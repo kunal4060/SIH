@@ -106,6 +106,22 @@ def get_plant_history(
         } for s in scans
     ]
 
+@router.get("/latest")
+def get_latest_plant_scan(
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Returns the most recent plant scan report for the logged in user."""
+    scan = db.query(PlantScan).filter(PlantScan.user_id == user.id).order_by(PlantScan.created_at.desc()).first()
+    if not scan:
+        return None
+
+    report = json.loads(scan.details_json) if scan.details_json else {}
+    report["scan_id"] = scan.id
+    report["image_path"] = scan.image_path
+    report["created_at"] = scan.created_at.strftime("%b %d, %Y %I:%M %p")
+    return report
+
 @router.get("/history/{scan_id}")
 def get_plant_scan_detail(
     scan_id: int,

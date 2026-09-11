@@ -84,12 +84,9 @@ CRITICAL RULES:
 """
 
 CANDIDATE_MODELS = [
+    'gemini-3.6-flash',
     'gemini-3.5-flash',
-    'gemini-3.5-flash-lite',
-    'gemini-3.7-flash',
-    'gemini-3.8-flash',
-    'gemini-flash-latest',
-    'gemini-3.6-flash'
+    'gemini-flash-latest'
 ]
 
 class GeminiService:
@@ -102,7 +99,7 @@ class GeminiService:
         if self.api_key and self.api_key != "your_gemini_api_key_here":
             try:
                 genai.configure(api_key=self.api_key)
-                self.model = genai.GenerativeModel('gemini-3.5-flash')
+                self.model = genai.GenerativeModel('gemini-3.6-flash')
                 logger.info("AI Model Analysis Service initialized with Google Gemini API Key.")
             except Exception as e:
                 logger.error(f"Error initializing AI Model Analysis SDK: {e}")
@@ -119,12 +116,21 @@ class GeminiService:
         for model_name in CANDIDATE_MODELS:
             try:
                 model = genai.GenerativeModel(model_name)
-                response = model.generate_content(contents)
+                # Strict 10-second timeout per call to prevent network hanging
+                response = model.generate_content(
+                    contents,
+                    request_options={"timeout": 10.0}
+                )
                 if response and response.text:
                     logger.info(f"Gemini response generated successfully using model '{model_name}'.")
                     return response.text.strip()
             except Exception as e:
-                logger.warning(f"Model '{model_name}' invocation error: {e}. Attempting next model...")
+                err_str = str(e).lower()
+                logger.warning(f"Model '{model_name}' invocation error: {e}")
+                # If API quota is exceeded or rate-limited (429/ResourceExhausted), failover immediately without waiting across all candidate models
+                if "429" in err_str or "quota" in err_str or "resourceexhausted" in err_str:
+                    logger.warning("Gemini API quota reached. Immediate failover to local agricultural intelligence.")
+                    break
                 continue
         return None
 

@@ -189,7 +189,14 @@ const PlantScanner = ({ onAnalysisComplete }) => {
 
     } catch (err) {
       setLoading(false);
-      setError(err.response?.data?.detail || "Failed to analyze plant image. Please upload a clear photo.");
+      const detail = err.response?.data?.detail;
+      if (detail) {
+        setError(detail);
+      } else if (err.code === 'ECONNABORTED' || err.message?.includes('timeout')) {
+        setError("Analysis request timed out on cold start. Please click 'Analyze Plant Now' once more.");
+      } else {
+        setError("Failed to analyze plant image. Please upload a clear leaf/plant photo.");
+      }
     }
   };
 
