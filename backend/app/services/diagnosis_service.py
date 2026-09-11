@@ -338,7 +338,7 @@ class DiagnosisService:
                     "confidence": "Verified (Agree)"
                 }
             ],
-            "description": kb_info.get("description", "Agronomic condition analysis for your crop."),
+            "description": gemini_res.get("description") or kb_info.get("description", f"Agronomic condition analysis for your {plant_type}."),
             "symptoms": symptoms,
             "soil_deficiencies": soil_deficiencies,
             "root_causes": root_causes,

@@ -25,6 +25,18 @@ const DiagnosisResult = ({ report, onNewScan }) => {
   const navigate = useNavigate();
   const { setActiveScanContext, t } = useAuth();
 
+  const getInitialPhoto = () => {
+    if (!report) return null;
+    return report.preview_image || report.thumbnail || (report.image_path ? getImageUrl(report.image_path) : null);
+  };
+
+  const [currentImg, setCurrentImg] = React.useState(getInitialPhoto);
+  const [isZoomOpen, setIsZoomOpen] = React.useState(false);
+
+  React.useEffect(() => {
+    setCurrentImg(getInitialPhoto());
+  }, [report]);
+
   if (!report) return null;
 
   const handleAskAI = (promptText = null) => {
@@ -34,8 +46,6 @@ const DiagnosisResult = ({ report, onNewScan }) => {
     });
     navigate('/chatbot');
   };
-
-  const fullImageUrl = getImageUrl(report.image_path);
 
   // Safe array normalizer
   const normalizeToArray = (val, fallback = []) => {
@@ -274,18 +284,36 @@ const DiagnosisResult = ({ report, onNewScan }) => {
       {/* 4. Scanned Photo & Symptoms Overview */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
         <div className="p-3 bg-white border border-slate-200/90 rounded-2xl flex flex-col items-center justify-center">
-          {fullImageUrl ? (
-            <img
-              src={fullImageUrl}
-              alt={report.final_diagnosis}
-              className="w-full h-44 object-cover rounded-xl border border-slate-100"
-            />
+          {currentImg ? (
+            <div 
+              className="relative w-full h-44 rounded-xl overflow-hidden border border-slate-100 cursor-pointer group/img"
+              onClick={() => setIsZoomOpen(true)}
+              title="Click or tap to zoom image"
+            >
+              <img
+                src={currentImg}
+                alt={report.final_diagnosis || "Scanned Plant"}
+                className="w-full h-full object-cover transition-transform duration-300 group-hover/img:scale-105"
+                onError={() => {
+                  if (report.thumbnail && currentImg !== report.thumbnail) {
+                    setImgSrc(report.thumbnail);
+                  } else {
+                    setImgSrc(null);
+                  }
+                }}
+              />
+              <div className="absolute inset-0 bg-slate-900/30 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold gap-1.5 backdrop-blur-[1px]">
+                <span>Tap to Zoom</span>
+              </div>
+            </div>
           ) : (
-            <div className="w-full h-44 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 text-xs font-semibold">
-              Scanned Plant Photo
+            <div className="w-full h-44 bg-gradient-to-br from-emerald-50 to-slate-100 rounded-xl flex flex-col items-center justify-center text-slate-500 text-xs font-semibold p-4 text-center border border-slate-200/60">
+              <Sprout className="w-8 h-8 text-emerald-600 mb-1.5 opacity-80" />
+              <span>{report.plant || 'Crop'} Scan Photo</span>
+              <span className="text-[10px] text-slate-400 mt-1">Saved securely in cloud history</span>
             </div>
           )}
-          <div className="w-full flex items-center justify-between text-[11px] text-slate-400 mt-2 px-1">
+          <div className="w-full flex items-center justify-between text-[11px] text-slate-500 mt-2 px-1">
             <span>{t('crop')}: <strong className="text-slate-700">{report.plant}</strong></span>
             {report.plant_part && (
               <span className="bg-slate-100 px-2 py-0.5 rounded text-slate-600 font-medium">
@@ -489,6 +517,31 @@ const DiagnosisResult = ({ report, onNewScan }) => {
         <ShieldAlert className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
         <span>{report.disclaimer || "AI-assisted field guidance. For severe commercial disease spread, consult a local agricultural extension officer."}</span>
       </div>
+
+      {/* 9. Tap-To-Zoom Fullscreen Modal */}
+      {isZoomOpen && currentImg && (
+        <div 
+          className="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-4 cursor-pointer"
+          onClick={() => setIsZoomOpen(false)}
+        >
+          <div className="relative max-w-3xl max-h-[90vh] flex flex-col items-center" onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={() => setIsZoomOpen(false)}
+              className="absolute -top-12 right-0 px-3 py-1.5 rounded-full bg-white/20 hover:bg-white/30 text-white font-bold transition-all text-xs flex items-center gap-1.5 cursor-pointer shadow-md"
+            >
+              <span>Close [✕]</span>
+            </button>
+            <img 
+              src={currentImg} 
+              alt={report.final_diagnosis || "Scanned Leaf"} 
+              className="max-w-full max-h-[80vh] object-contain rounded-2xl shadow-2xl border border-white/20"
+            />
+            <div className="mt-3 text-white text-xs font-semibold bg-slate-900/90 px-4 py-1.5 rounded-full border border-slate-700">
+              {report.plant} • {report.final_diagnosis}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

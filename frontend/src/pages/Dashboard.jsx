@@ -202,12 +202,17 @@ const Dashboard = () => {
         <div className="farm-card p-4 sm:p-6 border border-emerald-200 bg-emerald-50/40">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-              {latestScan.imagePath && (
+              {latestScan.thumbnail || latestScan.imagePath ? (
                 <img
-                  src={getImageUrl(latestScan.imagePath)}
+                  src={latestScan.thumbnail || getImageUrl(latestScan.imagePath)}
                   alt="Recent Scan"
-                  className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl object-cover border border-emerald-300 shadow-sm shrink-0"
+                  className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl object-cover border border-emerald-300 shadow-sm shrink-0 bg-slate-100"
+                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
                 />
+              ) : (
+                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-emerald-100 border border-emerald-300 flex items-center justify-center text-emerald-800 shrink-0">
+                  <Sprout className="w-6 h-6 text-emerald-700" />
+                </div>
               )}
               <div className="min-w-0 truncate">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800 bg-emerald-200/60 px-2 py-0.5 rounded-full inline-block">

@@ -5,15 +5,16 @@ export const getBackendBaseUrl = () => {
     return import.meta.env.VITE_API_URL.replace(/\/api\/?$/, '');
   }
   if (typeof window !== 'undefined') {
-    if (window.location.port === '5173') {
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
       return 'http://localhost:8000';
     }
-    if (window.location.hostname.includes('vercel.app')) {
-      return 'https://rasmalai-core.onrender.com';
+    if (window.location.hostname === 'rasmalai-core.onrender.com') {
+      return window.location.origin;
     }
-    return window.location.origin;
+    // For mobile phones, Vercel deployments, or LAN IPs, route directly to live Render backend
+    return 'https://rasmalai-core.onrender.com';
   }
-  return 'http://localhost:8000';
+  return 'https://rasmalai-core.onrender.com';
 };
 
 export const getApiBaseUrl = () => {

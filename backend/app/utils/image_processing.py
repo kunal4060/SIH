@@ -1,21 +1,34 @@
 import io
 import os
 import uuid
+import base64
 from pathlib import Path
 from PIL import Image
 import numpy as np
 from backend.app.config.settings import settings
 
-ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".bmp"}
-MAX_FILE_SIZE = 15 * 1024 * 1024  # 15 MB
+ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".bmp", ".heic", ".heif", ".jfif"}
+MAX_FILE_SIZE = 50 * 1024 * 1024  # 50 MB (generous limit for ultra high-res smartphone cameras)
+
+def generate_base64_thumbnail(file_bytes: bytes, max_dim: int = 320) -> str:
+    """Generates a compact base64 JPEG thumbnail to persist in DB across container restarts."""
+    try:
+        img = Image.open(io.BytesIO(file_bytes)).convert("RGB")
+        img.thumbnail((max_dim, max_dim), Image.Resampling.BILINEAR)
+        buf = io.BytesIO()
+        img.save(buf, format="JPEG", quality=75, optimize=True)
+        b64 = base64.b64encode(buf.getvalue()).decode("utf-8")
+        return f"data:image/jpeg;base64,{b64}"
+    except Exception:
+        return ""
 
 def validate_and_save_image(file_bytes: bytes, filename: str) -> str:
     """Validates image file bytes and saves to the uploads directory. Returns relative path."""
     if len(file_bytes) > MAX_FILE_SIZE:
-        raise ValueError("Image file size exceeds maximum allowed size of 15MB")
+        raise ValueError("Image file size exceeds maximum allowed limit of 50MB")
     
     ext = Path(filename).suffix.lower()
-    if ext not in ALLOWED_EXTENSIONS:
+    if ext not in ALLOWED_EXTENSIONS or ext in {".heic", ".heif"}:
         ext = ".jpg"
 
     try:

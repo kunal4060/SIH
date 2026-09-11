@@ -114,14 +114,74 @@ const PlantScanner = ({ onAnalysisComplete }) => {
     }, 'image/jpeg', 0.95);
   };
 
-  const handleFileUpload = (e) => {
-    const file = e.target.files[0];
+  const compressImage = (file) => {
+    return new Promise((resolve) => {
+      if (!file || !file.type.startsWith('image/')) return resolve(file);
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 1280;
+          const MAX_HEIGHT = 1280;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height = Math.round((height * MAX_WIDTH) / width);
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width = Math.round((width * MAX_HEIGHT) / height);
+              height = MAX_HEIGHT;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          canvas.toBlob(
+            (blob) => {
+              if (!blob) return resolve(file);
+              const compressedFile = new File([blob], "leaf_scan.jpg", {
+                type: 'image/jpeg',
+                lastModified: Date.now(),
+              });
+              resolve(compressedFile);
+            },
+            'image/jpeg',
+            0.85
+          );
+        };
+        img.onerror = () => resolve(file);
+        img.src = e.target.result;
+      };
+      reader.onerror = () => resolve(file);
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files?.[0];
     if (file) {
-      setImageFile(file);
-      setCapturedImage(URL.createObjectURL(file));
-      stopCamera();
+      setError(null);
+      try {
+        const compressed = await compressImage(file);
+        setImageFile(compressed);
+        const previewUrl = URL.createObjectURL(compressed);
+        setCapturedImage(previewUrl);
+        stopCamera();
+      } catch (err) {
+        setImageFile(file);
+        setCapturedImage(URL.createObjectURL(file));
+        stopCamera();
+      }
     }
-    // reset input value so user can pick same file again if needed
     e.target.value = '';
   };
 
@@ -183,7 +243,10 @@ const PlantScanner = ({ onAnalysisComplete }) => {
       setTimeout(() => {
         setLoading(false);
         if (onAnalysisComplete) {
-          onAnalysisComplete(res.data);
+          onAnalysisComplete({
+            ...res.data,
+            preview_image: capturedImage,
+          });
         }
       }, 400);
 
@@ -333,14 +396,14 @@ const PlantScanner = ({ onAnalysisComplete }) => {
             <canvas ref={canvasRef} className="hidden" />
           </div>
 
-          {/* Hidden HTML Native File Inputs */}
+          {/* Native HTML Camera & Gallery Inputs: Positioned offscreen rather than hidden so Safari/Android never blocks clicks */}
           <input
             ref={mobileCameraInputRef}
             type="file"
             accept="image/*"
             capture="environment"
             onChange={handleFileUpload}
-            className="hidden"
+            style={{ position: 'fixed', top: '-9999px', left: '-9999px', opacity: 0 }}
             id="mobile-native-camera-input"
           />
           <input
@@ -348,7 +411,7 @@ const PlantScanner = ({ onAnalysisComplete }) => {
             type="file"
             accept="image/*"
             onChange={handleFileUpload}
-            className="hidden"
+            style={{ position: 'fixed', top: '-9999px', left: '-9999px', opacity: 0 }}
             id="gallery-file-picker-input"
           />
 
@@ -356,33 +419,37 @@ const PlantScanner = ({ onAnalysisComplete }) => {
             <div className="space-y-3">
               {/* Action Buttons: Minimalist Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                {/* Option 1: Mobile Camera Direct (or Webcam toggle on desktop) */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (isMobile) {
-                      mobileCameraInputRef.current?.click();
-                    } else {
-                      startCamera();
-                    }
-                  }}
-                  className="p-3.5 rounded-xl border border-emerald-300 bg-emerald-50/70 hover:bg-emerald-100/80 text-emerald-950 font-extrabold text-xs flex items-center justify-center gap-2.5 transition-all shadow-sm hover:shadow cursor-pointer"
-                  id="btn-trigger-camera"
-                >
-                  <Camera className="w-4 h-4 text-emerald-700 shrink-0" />
-                  <span>{isMobile ? t('btn_mobile_camera') : t('btn_desktop_camera')}</span>
-                </button>
+                {/* Option 1: Mobile Camera Direct / Desktop Webcam */}
+                {isMobile ? (
+                  <label
+                    htmlFor="mobile-native-camera-input"
+                    className="p-3.5 rounded-xl border border-emerald-300 bg-emerald-50/70 hover:bg-emerald-100/80 text-emerald-950 font-extrabold text-xs flex items-center justify-center gap-2.5 transition-all shadow-sm hover:shadow cursor-pointer select-none active:scale-95"
+                    id="btn-trigger-camera"
+                  >
+                    <Camera className="w-4 h-4 text-emerald-700 shrink-0" />
+                    <span>{t('btn_mobile_camera')}</span>
+                  </label>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => startCamera()}
+                    className="p-3.5 rounded-xl border border-emerald-300 bg-emerald-50/70 hover:bg-emerald-100/80 text-emerald-950 font-extrabold text-xs flex items-center justify-center gap-2.5 transition-all shadow-sm hover:shadow cursor-pointer"
+                    id="btn-trigger-camera"
+                  >
+                    <Camera className="w-4 h-4 text-emerald-700 shrink-0" />
+                    <span>{t('btn_desktop_camera')}</span>
+                  </button>
+                )}
 
                 {/* Option 2: Upload photo from files/gallery */}
-                <button
-                  type="button"
-                  onClick={() => galleryInputRef.current?.click()}
-                  className="p-3.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-800 font-extrabold text-xs flex items-center justify-center gap-2.5 transition-all shadow-sm hover:shadow cursor-pointer"
+                <label
+                  htmlFor="gallery-file-picker-input"
+                  className="p-3.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-800 font-extrabold text-xs flex items-center justify-center gap-2.5 transition-all shadow-sm hover:shadow cursor-pointer select-none active:scale-95"
                   id="btn-trigger-gallery"
                 >
                   <Upload className="w-4 h-4 text-slate-600 shrink-0" />
                   <span>{t('btn_upload_gallery')}</span>
-                </button>
+                </label>
               </div>
 
               {/* Quick Demo Test Buttons */}
