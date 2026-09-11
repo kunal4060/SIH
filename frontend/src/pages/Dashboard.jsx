@@ -204,7 +204,7 @@ const Dashboard = () => {
             <div className="flex items-center gap-3 sm:gap-4 min-w-0">
               {latestScan.imagePath && (
                 <img
-                  src={`http://localhost:8000${latestScan.imagePath}`}
+                  src={latestScan.imagePath.startsWith('http') ? latestScan.imagePath : (typeof window !== 'undefined' && window.location.port === '5173' ? `http://localhost:8000${latestScan.imagePath}` : `${window.location.origin}${latestScan.imagePath}`)}
                   alt="Recent Scan"
                   className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl object-cover border border-emerald-300 shadow-sm shrink-0"
                 />

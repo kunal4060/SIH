@@ -91,7 +91,7 @@ const PlantHistory = () => {
               <div className="flex items-center gap-3 sm:gap-4 mb-3">
                 {scan.imagePath ? (
                   <img
-                    src={`http://localhost:8000${scan.imagePath}`}
+                    src={scan.imagePath.startsWith('http') ? scan.imagePath : (typeof window !== 'undefined' && window.location.port === '5173' ? `http://localhost:8000${scan.imagePath}` : `${window.location.origin}${scan.imagePath}`)}
                     alt={scan.diagnosis}
                     className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl object-cover border border-slate-200 shadow-sm shrink-0"
                   />
