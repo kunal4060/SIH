@@ -12,7 +12,7 @@ services:
       - key: SECRET_KEY
         generateValue: true
       - key: DATABASE_URL
-        value: sqlite:///./smart_farm.db
+        value: postgresql://postgres:40Kunal%40Ugale60@db.uzfhsghhbpdnhjofedzd.supabase.co:5432/postgres
       - key: AUTO_IRRIGATION_MOISTURE_THRESHOLD
         value: "40.0"
       - key: MIN_WATER_TANK_LEVEL
