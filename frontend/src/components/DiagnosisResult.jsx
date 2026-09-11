@@ -19,6 +19,7 @@ import {
   Flame
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { getImageUrl } from '../services/api';
 
 const DiagnosisResult = ({ report, onNewScan }) => {
   const navigate = useNavigate();
@@ -34,13 +35,7 @@ const DiagnosisResult = ({ report, onNewScan }) => {
     navigate('/chatbot');
   };
 
-  const fullImageUrl = report.image_path
-    ? (report.image_path.startsWith('http')
-        ? report.image_path
-        : (typeof window !== 'undefined' && window.location.port === '5173'
-            ? `http://localhost:8000${report.image_path}`
-            : `${window.location.origin}${report.image_path}`))
-    : null;
+  const fullImageUrl = getImageUrl(report.image_path);
 
   // Safe array normalizer
   const normalizeToArray = (val, fallback = []) => {

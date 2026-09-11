@@ -1,16 +1,32 @@
 import axios from 'axios';
 
-const getApiBaseUrl = () => {
+export const getBackendBaseUrl = () => {
   if (import.meta.env?.VITE_API_URL) {
-    return import.meta.env.VITE_API_URL;
+    return import.meta.env.VITE_API_URL.replace(/\/api\/?$/, '');
   }
   if (typeof window !== 'undefined') {
     if (window.location.port === '5173') {
-      return 'http://localhost:8000/api';
+      return 'http://localhost:8000';
     }
-    return `${window.location.origin}/api`;
+    if (window.location.hostname.includes('vercel.app')) {
+      return 'https://rasmalai-core.onrender.com';
+    }
+    return window.location.origin;
   }
-  return 'http://localhost:8000/api';
+  return 'http://localhost:8000';
+};
+
+export const getApiBaseUrl = () => {
+  if (import.meta.env?.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
+  return `${getBackendBaseUrl()}/api`;
+};
+
+export const getImageUrl = (path) => {
+  if (!path) return '';
+  if (path.startsWith('http')) return path;
+  return `${getBackendBaseUrl()}${path}`;
 };
 
 const api = axios.create({
