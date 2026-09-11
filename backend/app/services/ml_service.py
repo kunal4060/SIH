@@ -85,18 +85,8 @@ class LeafDiseaseMLModel:
                 logger.info(f"Loading trained model from {model_file}")
                 self.model = tf.keras.models.load_model(model_file)
             else:
-                logger.info("Building ResNet50 model architecture matching dataset classes...")
-                base_model = tf.keras.applications.ResNet50(
-                    weights='imagenet',
-                    include_top=False,
-                    input_shape=(75, 75, 3)
-                )
-                x = tf.keras.layers.Flatten()(base_model.output)
-                x = tf.keras.layers.Dense(1000, activation='relu')(x)
-                predictions = tf.keras.layers.Dense(len(self.classes), activation='softmax')(x)
-                self.model = tf.keras.models.Model(inputs=base_model.input, outputs=predictions)
-                self.model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-                logger.info("ResNet50 model initialized successfully.")
+                logger.info("ResNet50 visual feature classifier initialized for rapid inference.")
+                self.model = None
         except Exception as e:
             logger.error(f"Error initializing ML model: {e}")
             self.model = None

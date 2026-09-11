@@ -43,11 +43,11 @@ COPY --from=frontend-builder /app/frontend/dist ./frontend/dist
 # Create persistent storage directories
 RUN mkdir -p /app/backend/uploads /app/data
 
-EXPOSE 8000
+EXPOSE 10000 8000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-  CMD curl -f http://localhost:8000/health || exit 1
+  CMD curl -f http://localhost:${PORT:-10000}/health || exit 1
 
-# Start Uvicorn Server (dynamically binds to Render's $PORT or defaults to 8000)
-CMD ["sh", "-c", "uvicorn backend.app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+# Start Uvicorn Server (dynamically binds to Render's $PORT or defaults to 10000)
+CMD ["sh", "-c", "uvicorn backend.app.main:app --host 0.0.0.0 --port ${PORT:-10000}"]
