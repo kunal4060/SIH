@@ -172,8 +172,8 @@ Open browser at `http://localhost:5173`.
 
 ## 🔑 Demo Quick-Login Credentials
 
-- **Username**: `kunal`
-- **Password**: `farmer123`
+- **Username**: `admin`
+- **Password**: `admin`
 
 *(Click the "Auto Fill" button on the Login page for 1-click access)*
 

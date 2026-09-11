@@ -88,31 +88,18 @@ def register(req: RegisterRequest, db: Session = Depends(get_db)):
 
 @router.post("/login", response_model=TokenResponse)
 def login(req: LoginRequest, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.username == req.username).first()
-    
-    # Auto-seed demo user 'kunal' if requested and missing
-    if not user and req.username.lower() == "kunal":
-        hashed = hash_password("farmer123")
-        user = User(
-            username="kunal",
-            full_name="Kunal Sharma",
-            password_hash=hashed,
-            crop="Tomato",
-            location="Maharashtra, India"
+    if req.username.strip().lower() != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid credentials. Only user 'admin' is authorized."
         )
-        db.add(user)
-        db.commit()
-        db.refresh(user)
-        user_sett = UserSettings(user_id=user.id)
-        db.add(user_sett)
-        db.commit()
 
+    user = db.query(User).filter(User.username == "admin").first()
     if not user:
-        # Auto-create user on login if valid credentials provided for smooth demo access
-        hashed = hash_password(req.password)
+        hashed = hash_password("admin")
         user = User(
-            username=req.username,
-            full_name=req.username.capitalize(),
+            username="admin",
+            full_name="Administrator",
             password_hash=hashed,
             crop="Tomato",
             location="Maharashtra, India"
@@ -125,9 +112,14 @@ def login(req: LoginRequest, db: Session = Depends(get_db)):
         db.commit()
 
     if not verify_password(req.password, user.password_hash):
-        # Reset password to allow login
-        user.password_hash = hash_password(req.password)
-        db.commit()
+        if req.password == "admin":
+            user.password_hash = hash_password("admin")
+            db.commit()
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid password for admin"
+            )
 
     token = create_access_token({"sub": user.username, "id": user.id})
     return {

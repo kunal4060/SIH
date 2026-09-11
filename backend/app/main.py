@@ -25,19 +25,19 @@ logger = logging.getLogger("smart_farm")
 # Create Database Tables
 Base.metadata.create_all(bind=engine)
 
-# Seed default user 'kunal' / 'kunal' and ensure only this user exists
+# Seed default user 'admin' / 'admin' and ensure only this user exists
 def seed_demo_user():
     db = SessionLocal()
     try:
-        # Ensure database consists only of user 'kunal'
-        db.query(User).filter(User.username != "kunal").delete()
-        user = db.query(User).filter(User.username == "kunal").first()
-        hashed = hash_password("kunal")
+        # Ensure database consists only of user 'admin'
+        db.query(User).filter(User.username != "admin").delete()
+        user = db.query(User).filter(User.username == "admin").first()
+        hashed = hash_password("admin")
         if not user:
-            logger.info("Seeding farmer user ('kunal' / 'kunal')...")
+            logger.info("Seeding admin user ('admin' / 'admin')...")
             user = User(
-                username="kunal",
-                full_name="Kunal Sharma",
+                username="admin",
+                full_name="Administrator",
                 password_hash=hashed,
                 crop="Tomato",
                 location="Maharashtra, India"
@@ -49,11 +49,12 @@ def seed_demo_user():
             user_sett = UserSettings(user_id=user.id, motor_state="OFF", irrigation_mode="MANUAL")
             db.add(user_sett)
             db.commit()
-            logger.info("Farmer user 'kunal' created successfully.")
+            logger.info("Admin user 'admin' created successfully.")
         else:
             user.password_hash = hashed
+            user.full_name = "Administrator"
             db.commit()
-            logger.info("Farmer user 'kunal' password set to 'kunal'.")
+            logger.info("Admin user 'admin' password set to 'admin'.")
     except Exception as e:
         logger.error(f"Error seeding user: {e}")
     finally:

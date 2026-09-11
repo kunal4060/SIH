@@ -5,14 +5,10 @@ import { useAuth } from '../context/AuthContext';
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login, register } = useAuth();
+  const { login } = useAuth();
 
-  const [isRegister, setIsRegister] = useState(false);
-  const [username, setUsername] = useState('kunal');
-  const [password, setPassword] = useState('kunal');
-  const [fullName, setFullName] = useState('');
-  const [crop, setCrop] = useState('Tomato');
-  const [location, setLocation] = useState('Maharashtra, India');
+  const [username, setUsername] = useState('admin');
+  const [password, setPassword] = useState('admin');
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -22,11 +18,7 @@ const Login = () => {
     setLoading(true);
 
     try {
-      if (isRegister) {
-        await register({ username, password, full_name: fullName, crop, location });
-      } else {
-        await login(username, password);
-      }
+      await login(username, password);
       navigate('/dashboard');
     } catch (err) {
       setError(err.response?.data?.detail || 'Authentication failed. Please check your credentials.');
@@ -36,9 +28,8 @@ const Login = () => {
   };
 
   const fillDemoCredentials = () => {
-    setUsername('kunal');
-    setPassword('kunal');
-    setIsRegister(false);
+    setUsername('admin');
+    setPassword('admin');
   };
 
   return (
@@ -57,12 +48,12 @@ const Login = () => {
         <div className="mb-5 sm:mb-6 p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-900 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
             <Sparkles className="w-4 h-4 text-emerald-600 shrink-0" />
-            <span className="truncate">Login: <strong>kunal</strong> | Pass: <strong>kunal</strong></span>
+            <span className="truncate">Login: <strong>admin</strong> | Pass: <strong>admin</strong></span>
           </div>
           <button
             type="button"
             onClick={fillDemoCredentials}
-            className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-[11px] shadow-sm shrink-0 min-h-[32px] flex items-center justify-center"
+            className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-[11px] shadow-sm shrink-0 min-h-[32px] flex items-center justify-center cursor-pointer transition-colors"
           >
             Auto Fill
           </button>
@@ -70,22 +61,8 @@ const Login = () => {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-3.5 sm:space-y-4">
-          {isRegister && (
-            <div>
-              <label className="block text-xs font-bold text-slate-600 mb-1">Full Name</label>
-              <input
-                type="text"
-                required
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                placeholder="e.g. Kunal Sharma"
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs font-medium focus:outline-none focus:border-emerald-500"
-              />
-            </div>
-          )}
-
           <div>
-            <label className="block text-xs font-bold text-slate-600 mb-1">Farmer Username</label>
+            <label className="block text-xs font-bold text-slate-600 mb-1">Username</label>
             <div className="relative">
               <input
                 type="text"
@@ -93,7 +70,7 @@ const Login = () => {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="Username"
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-3 text-xs font-medium focus:outline-none focus:border-emerald-500"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-3 text-xs font-medium focus:outline-none focus:border-emerald-500 text-slate-800"
               />
               <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
             </div>
@@ -107,41 +84,12 @@ const Login = () => {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-3 text-xs font-medium focus:outline-none focus:border-emerald-500"
+                placeholder="Password"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-3 text-xs font-medium focus:outline-none focus:border-emerald-500 text-slate-800"
               />
               <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
             </div>
           </div>
-
-          {isRegister && (
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-bold text-slate-600 mb-1">Main Crop</label>
-                <select
-                  value={crop}
-                  onChange={(e) => setCrop(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-3 text-xs font-medium focus:outline-none focus:border-emerald-500"
-                >
-                  <option value="Tomato">Tomato</option>
-                  <option value="Potato">Potato</option>
-                  <option value="Corn">Corn</option>
-                  <option value="Grape">Grape</option>
-                  <option value="Pepper">Pepper</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-600 mb-1">Location</label>
-                <input
-                  type="text"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-3 text-xs font-medium focus:outline-none focus:border-emerald-500"
-                />
-              </div>
-            </div>
-          )}
 
           {error && (
             <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium">
@@ -152,22 +100,12 @@ const Login = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full btn-primary justify-center py-3.5 text-sm rounded-xl font-bold shadow-lg shadow-emerald-600/30 mt-2"
+            className="w-full btn-primary justify-center py-3.5 text-sm rounded-xl font-bold shadow-lg shadow-emerald-600/30 mt-2 cursor-pointer transition-all hover:scale-[1.01] active:scale-[0.99]"
           >
-            <span>{isRegister ? 'Create Farmer Account' : 'Farmer Login'}</span>
+            <span>{loading ? 'Logging in...' : 'Sign In as Admin'}</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </form>
-
-        <div className="mt-6 text-center">
-          <button
-            type="button"
-            onClick={() => setIsRegister(!isRegister)}
-            className="text-xs font-bold text-emerald-700 hover:text-emerald-800"
-          >
-            {isRegister ? 'Already registered? Sign in here' : "Don't have an account? Register new farm"}
-          </button>
-        </div>
 
         <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-center gap-1.5 text-[11px] text-slate-400">
           <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />

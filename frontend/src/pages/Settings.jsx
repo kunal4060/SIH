@@ -40,7 +40,7 @@ const Settings = () => {
               <input
                 type="text"
                 disabled
-                value={user?.full_name || 'Kunal Sharma'}
+                value={user?.full_name || 'Administrator'}
                 className="w-full bg-slate-100 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-medium text-slate-700 cursor-not-allowed min-h-[44px]"
               />
             </div>
