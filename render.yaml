@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: rasmalai-core
+    env: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        value: sqlite:///./smart_farm.db
+      - key: AUTO_IRRIGATION_MOISTURE_THRESHOLD
+        value: "40.0"
+      - key: MIN_WATER_TANK_LEVEL
+        value: "15.0"

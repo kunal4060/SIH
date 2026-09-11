@@ -1,0 +1,21 @@
+services:
+  rasmalai:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: rasmalai_app
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - SECRET_KEY=${SECRET_KEY:-rasmalai_production_secret_key_2026}
+      - FIREBASE_DATABASE_URL=${FIREBASE_DATABASE_URL:-}
+      - FIREBASE_API_KEY=${FIREBASE_API_KEY:-}
+    volumes:
+      - rasmalai_uploads:/app/backend/uploads
+      - rasmalai_data:/app/data
+
+volumes:
+  rasmalai_uploads:
+  rasmalai_data:

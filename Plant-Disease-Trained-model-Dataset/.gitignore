@@ -1,0 +1,10 @@
+.DS_Store
+__pycache__/
+*.pyc
+
+# Ignore large datasets and model files to prevent GitHub push errors (GitHub blocks >100MB files)
+models/
+color/
+grayscale/
+segmented/
+train_val_test/
