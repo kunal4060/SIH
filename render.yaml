@@ -12,7 +12,7 @@ services:
       - key: SECRET_KEY
         generateValue: true
       - key: DATABASE_URL
-        value: postgresql://postgres:40Kunal%40Ugale60@db.uzfhsghhbpdnhjofedzd.supabase.co:5432/postgres
+        value: postgresql://postgres.uzfhsghhbpdnhjofedzd:40Kunal%40Ugale60@aws-0-ap-southeast-2.pooler.supabase.com:6543/postgres
       - key: AUTO_IRRIGATION_MOISTURE_THRESHOLD
         value: "40.0"
       - key: MIN_WATER_TANK_LEVEL

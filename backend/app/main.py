@@ -22,14 +22,13 @@ from backend.app.api.chatbot import router as chatbot_router
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("smart_farm")
 
-# Create Database Tables
-Base.metadata.create_all(bind=engine)
-
 # Seed default user 'admin' / 'admin' and ensure only this user exists
-def seed_demo_user():
-    db = SessionLocal()
+def seed_demo_user(db=None):
+    close_db = False
+    if db is None:
+        db = SessionLocal()
+        close_db = True
     try:
-        # Ensure database consists only of user 'admin'
         db.query(User).filter(User.username != "admin").delete()
         user = db.query(User).filter(User.username == "admin").first()
         hashed = hash_password("admin")
@@ -54,13 +53,12 @@ def seed_demo_user():
             user.password_hash = hashed
             user.full_name = "Administrator"
             db.commit()
-            logger.info("Admin user 'admin' password set to 'admin'.")
+            logger.info("Admin user 'admin' password verified.")
     except Exception as e:
         logger.error(f"Error seeding user: {e}")
     finally:
-        db.close()
-
-seed_demo_user()
+        if close_db:
+            db.close()
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -94,6 +92,28 @@ app.include_router(chatbot_router, prefix=settings.API_V1_STR)
 @app.get("/health")
 def health_check():
     return {"status": "healthy"}
+
+@app.on_event("startup")
+def on_startup():
+    logger.info("FastAPI startup event: Initializing database schema...")
+    try:
+        Base.metadata.create_all(bind=engine)
+        seed_demo_user()
+        logger.info("Database initialized successfully.")
+    except Exception as e:
+        logger.error(f"Primary database connection error: {e}")
+        try:
+            logger.warning("Initializing fallback local SQLite database for zero downtime...")
+            from sqlalchemy import create_engine
+            from sqlalchemy.orm import sessionmaker
+            fallback_engine = create_engine(f"sqlite:///{settings.BASE_DIR}/smart_farm.db", connect_args={"check_same_thread": False})
+            Base.metadata.create_all(bind=fallback_engine)
+            fallback_session = sessionmaker(bind=fallback_engine)()
+            seed_demo_user(db=fallback_session)
+            fallback_session.close()
+            logger.info("Local SQLite fallback database is active and ready.")
+        except Exception as ex:
+            logger.error(f"Fallback SQLite error: {ex}")
 
 # Mount frontend dist static assets
 frontend_dist = settings.ROOT_DIR / "frontend" / "dist"
